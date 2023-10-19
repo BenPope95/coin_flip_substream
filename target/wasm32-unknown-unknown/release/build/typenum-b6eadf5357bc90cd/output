@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/ben/rust_projects/coin_flip_substream/target/wasm32-unknown-unknown/release/build/typenum-b6eadf5357bc90cd/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/ben/rust_projects/coin_flip_substream/target/wasm32-unknown-unknown/release/build/typenum-b6eadf5357bc90cd/out/op.rs

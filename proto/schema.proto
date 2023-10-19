@@ -32,3 +32,11 @@ message Approval {
 message Approvals {
   repeated Approval approvals = 1;
 }
+
+message State_Change {
+  string min_bet = 1;
+  string max_profit = 2;
+  string total_eth_won = 3;
+  string total_eth_lost = 4;
+  string contract_balance = 5;
+}
