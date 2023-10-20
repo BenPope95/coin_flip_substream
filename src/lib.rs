@@ -22,8 +22,15 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChange, substreams::e
         .calls()
         .filter_map(|transaction| {
             if format_hex(&transaction.call.address) == ADDRESS.to_lowercase() && transaction.call.storage_changes.len() > 0 {
-                                  
-            } else {
+                let mut state_change_data: Vec<(String, String)> = Vec![];
+                for item in transaction.call.storage_changes {
+                    let data = BigInt::from_signed_bytes_be(&item.new_value).to_string();
+                    let slot = BigInt::from_signed_bytes_be(&item.key).to_string();
+                    state_change_data.push((slot, data));
+                } 
+                Some(state_change_data)       
+            }    
+              else {
                 None
             }
         })
