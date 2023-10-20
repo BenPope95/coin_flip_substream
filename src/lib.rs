@@ -7,7 +7,9 @@ mod pb;
 use pb::schema::{Approval, Approvals, Transfer, Transfers, StateChange};
 use substreams::pb::substreams::Clock;
 use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+use substreams_ethereum::pb::eth::v2::{StorageChange , Call};
 use substreams_ethereum::{pb::eth, Event};
+use substreams::scalar::{BigDecimal, BigInt};
 
 use helpers::*;
 
@@ -15,6 +17,27 @@ pub const ADDRESS: &str = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D";
 const START_BLOCK: u64 = 12287507;
 
 #[substreams::handlers::map]
+fn map_state_changes(block: eth::v2::Block) -> Result<StateChange, substreams::errors::Error> {
+    let state_changes = block
+        .calls()
+        .filter_map(|transaction| {
+            if format_hex(&transaction.call.address) == ADDRESS.to_lowercase() && transaction.call.storage_changes.len() > 0 {
+                                  
+            } else {
+                None
+            }
+        })
+        .map(|(transfer, hash)| Transfer {
+            from: format_hex(&transfer.from),
+            to: format_hex(&transfer.to),
+            token_id: transfer.token_id.to_string(),
+            tx_hash: hash,
+        })
+        .collect::<Vec<Transfer>>();
+
+    Ok(Transfers { transfers })
+}
+
 fn map_transfers(block: eth::v2::Block) -> Result<Transfers, substreams::errors::Error> {
     let transfers = block
         .logs()
