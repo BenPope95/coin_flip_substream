@@ -21,7 +21,7 @@ binaries:
 modules:
   - name: map_state_changes
     kind: map
-    initialBlock: 9807005
+    initialBlock: 5209792
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:

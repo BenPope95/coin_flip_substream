@@ -51,16 +51,18 @@ pub struct Approvals {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StateChanges {
+    #[prost(message, repeated, tag="1")]
+    pub state_changes: ::prost::alloc::vec::Vec<StateChange>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StateChange {
     #[prost(string, tag="1")]
-    pub min_bet: ::prost::alloc::string::String,
+    pub state_variable: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
-    pub max_profit: ::prost::alloc::string::String,
+    pub old_value: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
-    pub total_eth_won: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub total_eth_lost: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
-    pub contract_balance: ::prost::alloc::string::String,
+    pub new_value: ::prost::alloc::string::String,
 }
 // @@protoc_insertion_point(module)

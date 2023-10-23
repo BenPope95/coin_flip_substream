@@ -14,22 +14,37 @@ use substreams::scalar::{BigDecimal, BigInt};
 
 use helpers::*;
 
-pub const ADDRESS: &str = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D";
-const START_BLOCK: u64 = 12287507;
+pub const ADDRESS: &str = "0xb4aFb4a1dF99C2333DDC57Ec33E57D26E87E78E4";
+const START_BLOCK: u64 = 9844317;
 
 #[substreams::handlers::map]
 fn map_state_changes(block: eth::v2::Block) -> Result<StateChange, substreams::errors::Error> {
     let state_changes = block
         .calls()
-        .filter_map(|transaction| {
+        .filter_map(|tx| {
             //format_hex(&transaction.call.address) == ADDRESS.to_lowercase() &&
-            if  transaction.call.storage_changes.len() > 0 {
+            if  tx.call.storage_changes.len() > 0 && format_hex(&tx.call.address) == ADDRESS.to_lowercase(){
                 let mut state_change_data: Vec<(String, String)> = vec![];
-                for item in &transaction.call.storage_changes  {
+                for item in &tx.call.storage_changes  {
+                    let state_variable = match  BigInt::from_unsigned_bytes_be(&item.key).to_string().as_str() {
+                        "6" => String::from("min_bet"),
+                        "7" => String::from("max_profit"),
+                        "15" => String::from("totat_wei_won"),
+                        "16" => String::from("total_wei_lost"),
+                        "17" => String::from("contract_balance"),
+                        _ => {
+                            break;
+                        }
+                    };
+                    StateChange {
+                        state_variable, 
+                        old_value: BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
+                        new_value:  BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
+                    };
                     let data = BigInt::from_unsigned_bytes_be(&item.new_value).to_string();
                     let slot = BigInt::from_unsigned_bytes_be(&item.key).to_string();
-                    println(format!("CALL ADDRESS {}", format_hex(&transaction.call.address)));
-                    println(format!("DATA IS: {:?} \n SLOT IS {:?}", &data, &slot));
+                    //println(format!("CALL ADDRESS {}", format_hex(&tx.call.address)));
+                    //println(format!("DATA IS: {:?} \n SLOT IS {:?}", &data, &slot));
                     state_change_data.push((slot, data));
                 } 
                 Some(state_change_data)       
