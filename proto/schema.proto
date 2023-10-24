@@ -33,11 +33,11 @@ message Approvals {
   repeated Approval approvals = 1;
 }
 
-message State_Changes {
-  repeated State_Change state_changes = 1;
+message StateChanges {
+  repeated StateChange state_changes = 1;
 }
 
-message State_Change {
+message StateChange {
   string state_variable = 1;
   string old_value = 2;
   string new_value = 3;

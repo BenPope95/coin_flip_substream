@@ -21,11 +21,11 @@ binaries:
 modules:
   - name: map_state_changes
     kind: map
-    initialBlock: 5209792
+    initialBlock: 5202951
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:schema.StateChange
+      type: proto:schema.StateChanges
 
   # - name: map_approvals
   #   kind: map

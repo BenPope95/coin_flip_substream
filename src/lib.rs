@@ -19,14 +19,15 @@ const START_BLOCK: u64 = 9844317;
 
 #[substreams::handlers::map]
 fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::errors::Error> {
-    let state_changes = block
-        .calls()
-        .filter_map(|tx| {
-            //format_hex(&transaction.call.address) == ADDRESS.to_lowercase() &&
+    let mut state_changes = Vec::new();
+        // .calls()
+        // .filter_map(|tx| {
+        //     //format_hex(&transaction.call.address) == ADDRESS.to_lowercase() &&
+        for tx in block.calls() {
             if tx.call.storage_changes.len() > 0
                 && format_hex(&tx.call.address) == ADDRESS.to_lowercase()
             {
-                let mut state_change_vec = Vec::new();
+                //let mut state_change_vec = Vec::new();
                 for item in &tx.call.storage_changes {
                     let state_variable = match BigInt::from_unsigned_bytes_be(&item.key)
                         .to_string()
@@ -42,19 +43,23 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
                         }
                     };
                 
-                    state_change_vec.push(StateChange {
+                    state_changes.push(StateChange {
                         state_variable,
                         old_value: BigInt::from_unsigned_bytes_be(&item.old_value).to_string(),
                         new_value: BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
-                    })
+                    });
                 
                 }
-                Some(state_change_vec)
-            } else {
-                None
+                
+            } 
             }
-        })
-        .flat_map(|x| x).collect::<Vec<StateChange>>();
+            Ok(StateChanges { state_changes })
+        }
+        
+        
+
+
+    
     // .map(|state_change_data| {
     //     match state_change_data {
 
@@ -67,8 +72,6 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
     // }})
     // .collect::<Vec<Transfer>>();
 
-    Ok(StateChanges { state_changes })
-}
 
 // fn map_transfers(block: eth::v2::Block) -> Result<Transfers, substreams::errors::Error> {
 //     let transfers = block
