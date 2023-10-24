@@ -4,13 +4,13 @@ mod CoinFlip;
 mod helpers;
 mod pb;
 
-use pb::schema::{Approval, Approvals, Transfer, Transfers, StateChange};
+use pb::schema::{Approval, Approvals, StateChange, StateChanges, Transfer, Transfers};
 use substreams::log::println;
 use substreams::pb::substreams::Clock;
-use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
-use substreams_ethereum::pb::eth::v2::{StorageChange , Call};
-use substreams_ethereum::{pb::eth, Event};
 use substreams::scalar::{BigDecimal, BigInt};
+use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+use substreams_ethereum::pb::eth::v2::{Call, StorageChange};
+use substreams_ethereum::{pb::eth, Event};
 
 use helpers::*;
 
@@ -18,55 +18,56 @@ pub const ADDRESS: &str = "0xb4aFb4a1dF99C2333DDC57Ec33E57D26E87E78E4";
 const START_BLOCK: u64 = 9844317;
 
 #[substreams::handlers::map]
-fn map_state_changes(block: eth::v2::Block) -> Result<StateChange, substreams::errors::Error> {
+fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::errors::Error> {
     let state_changes = block
         .calls()
         .filter_map(|tx| {
             //format_hex(&transaction.call.address) == ADDRESS.to_lowercase() &&
-            if  tx.call.storage_changes.len() > 0 && format_hex(&tx.call.address) == ADDRESS.to_lowercase(){
-                let mut state_change_data: Vec<(String, String)> = vec![];
-                for item in &tx.call.storage_changes  {
-                    let state_variable = match  BigInt::from_unsigned_bytes_be(&item.key).to_string().as_str() {
+            if tx.call.storage_changes.len() > 0
+                && format_hex(&tx.call.address) == ADDRESS.to_lowercase()
+            {
+                let mut state_change_vec = Vec::new();
+                for item in &tx.call.storage_changes {
+                    let state_variable = match BigInt::from_unsigned_bytes_be(&item.key)
+                        .to_string()
+                        .as_str()
+                    {
                         "6" => String::from("min_bet"),
                         "7" => String::from("max_profit"),
                         "15" => String::from("totat_wei_won"),
                         "16" => String::from("total_wei_lost"),
                         "17" => String::from("contract_balance"),
                         _ => {
-                            break;
+                            continue;
                         }
                     };
-                    StateChange {
-                        state_variable, 
-                        old_value: BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
-                        new_value:  BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
-                    };
-                    let data = BigInt::from_unsigned_bytes_be(&item.new_value).to_string();
-                    let slot = BigInt::from_unsigned_bytes_be(&item.key).to_string();
-                    //println(format!("CALL ADDRESS {}", format_hex(&tx.call.address)));
-                    //println(format!("DATA IS: {:?} \n SLOT IS {:?}", &data, &slot));
-                    state_change_data.push((slot, data));
-                } 
-                Some(state_change_data)       
-            }    
-              else {
+                
+                    state_change_vec.push(StateChange {
+                        state_variable,
+                        old_value: BigInt::from_unsigned_bytes_be(&item.old_value).to_string(),
+                        new_value: BigInt::from_unsigned_bytes_be(&item.new_value).to_string(),
+                    })
+                
+                }
+                Some(state_change_vec)
+            } else {
                 None
             }
         })
-        .collect::<Vec<_>>();
-        // .map(|state_change_data| { 
-        //     match state_change_data {
+        .flat_map(|x| x).collect::<Vec<StateChange>>();
+    // .map(|state_change_data| {
+    //     match state_change_data {
 
-        //     }
-        //     StateChange {
-        //     from: format_hex(&transfer.from),
-        //     to: format_hex(&transfer.to),
-        //     token_id: transfer.token_id.to_string(),
-        //     tx_hash: hash,
-        // }})
-        // .collect::<Vec<Transfer>>();
+    //     }
+    //     StateChange {
+    //     from: format_hex(&transfer.from),
+    //     to: format_hex(&transfer.to),
+    //     token_id: transfer.token_id.to_string(),
+    //     tx_hash: hash,
+    // }})
+    // .collect::<Vec<Transfer>>();
 
-    Ok(StateChange { ..Default::default() })
+    Ok(StateChanges { state_changes })
 }
 
 // fn map_transfers(block: eth::v2::Block) -> Result<Transfers, substreams::errors::Error> {
