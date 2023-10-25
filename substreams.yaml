@@ -27,6 +27,22 @@ modules:
     output:
       type: proto:schema.StateChanges
 
+  - name: store_state_changes
+    kind: store
+    initialBlock: 5202951
+    updatePolicy: set
+    valueType: proto:schema.StateChange
+    inputs:
+      - map: map_state_changes
+
+  - name: map_stores
+    kind: map
+    initialBlock: 5202951
+    inputs:
+      - store: store_state_changes
+    output:
+      type: proto:schema.StateChanges
+
   # - name: map_approvals
   #   kind: map
   #   initialBlock: 12287507
