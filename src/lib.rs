@@ -21,14 +21,11 @@ const START_BLOCK: u64 = 9844317;
 #[substreams::handlers::map]
 fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::errors::Error> {
     let mut state_changes = Vec::new();
-    // .calls()
-    // .filter_map(|tx| {
-    //     //format_hex(&transaction.call.address) == ADDRESS.to_lowercase() &&
+
     for tx in block.calls() {
         if tx.call.storage_changes.len() > 0
             && format_hex(&tx.call.address) == ADDRESS.to_lowercase()
         {
-            //let mut state_change_vec = Vec::new();
             for item in &tx.call.storage_changes {
                 let state_variable = match BigInt::from_unsigned_bytes_be(&item.key)
                     .to_string()
@@ -57,10 +54,8 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
 
 #[substreams::handlers::store]
 fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>) {
-    //let mut ord_counter = 1;
     for item in statechanges.state_changes {
         s.set(0, &item.state_variable, &item);
-        //ord_counter += 1;
     }
 }
 
@@ -78,43 +73,9 @@ fn map_stores(
 
     let mut state_changes = Vec::new();
 
-    //Default Variable Values 
-    let min_bet = StateChange {
-        state_variable: "min_bet".to_string(),
-        old_value: "0".to_string(),
-        new_value: "0".to_string(),
-    };
-    let max_profit = StateChange {
-        state_variable: "max_profit".to_string(),
-        old_value: "0".to_string(),
-        new_value: "0".to_string(),
-    };
-    let total_wei_won = StateChange {
-        state_variable: "total_wei_won".to_string(),
-        old_value: "0".to_string(),
-        new_value: "0".to_string(),
-    };
-    let total_wei_lost = StateChange {
-        state_variable: "total_wei_lost".to_string(),
-        old_value: "0".to_string(),
-        new_value: "0".to_string(),
-    };
-
-    state_changes.push(min_bet.clone());
-    state_changes.push(max_profit.clone());
-    state_changes.push(total_wei_won.clone());
-    state_changes.push(total_wei_lost.clone());
-
     for key in keys {
         if let Some(value) = store.get_at(0, key) {
             state_changes.push(value);
-            match key {
-                "min_bet" => state_changes.retain(|x| x != &min_bet),
-                "max_profit" => state_changes.retain(|x| x != &max_profit),
-                "total_wei_won" => state_changes.retain(|x| x != &total_wei_won),
-                "total_wei_lost" => state_changes.retain(|x| x != &total_wei_lost),
-                _ => {}
-            }
         }
     }
 
