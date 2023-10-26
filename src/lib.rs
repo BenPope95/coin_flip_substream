@@ -8,10 +8,12 @@ use pb::schema::{Approval, Approvals, StateChange, StateChanges, Transfer, Trans
 use substreams::log::println;
 use substreams::pb::substreams::Clock;
 use substreams::scalar::{BigDecimal, BigInt};
-use substreams::store::{StoreGet, StoreGetProto, StoreNew, StoreSet, StoreSetProto};
-use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+use substreams::store::{StoreGet, StoreGetProto, StoreNew, StoreSet, StoreSetProto, DeltaProto, Deltas};
+//use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
 use substreams_ethereum::pb::eth::v2::{Call, StorageChange};
 use substreams_ethereum::{pb::eth, Event};
+use substreams_database_change::pb::database::DatabaseChanges;
+use substreams_database_change::tables::Tables;
 
 use helpers::*;
 
@@ -80,6 +82,39 @@ fn map_stores(
     }
 
     Ok(StateChanges { state_changes })
+}
+
+fn db_out(
+    clock: substreams::pb::substreams::Clock,
+    state_changes: StateChanges,
+    store_deltas: Deltas<DeltaProto<StateChange>>,
+) -> Result<DatabaseChanges, substreams::errors::Error> {
+    let mut tables = Tables::new();
+    for state_change in state_changes.state_changes {
+        tables
+            .create_row(
+                "state_change",
+              &state_change.state_variable,
+            )
+            .set("state_variable", state_change.state_variable)
+            .set("old_value", state_change.old_value)
+            .set("new_value", state_change.new_value);
+            
+    }
+
+    for delta in store_deltas.deltas {
+        let holder = key::segment_at(&delta.key, 1);
+        let contract = key::segment_at(&delta.key, 2);
+
+        tables
+            .create_row("variable_name", delta.key)
+            .set("contract", contract)
+            .set("holder", holder)
+            .set("balance", delta.new_value)
+            .set("block_number", clock.number);
+    }
+
+    Ok(tables.to_database_changes())
 }
 
 // .map(|state_change_data| {
