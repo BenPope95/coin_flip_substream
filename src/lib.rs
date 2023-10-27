@@ -60,8 +60,16 @@ fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>
     let mut keys_in_vec = Vec::new();
     for item in statechanges.state_changes {
         let current_key = &item.state_variable;
+        let mut key_already_exists = false;
 
-        if keys_in_vec.contains(current_key) {
+        for existing_key in &keys_in_vec {
+            if current_key == existing_key {
+                key_already_exists = true;
+                break;
+            }
+        }
+
+        if key_already_exists {
             // Key is already in the array, increment ordinal
             ordinal += 1;
         }
@@ -74,29 +82,43 @@ fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>
 fn map_stores(
     store: StoreGetProto<StateChange>,
 ) -> Result<StateChanges, substreams::errors::Error> {
-    let keys = [
-        "min_bet",
-        "max_profit",
-        "total_wei_won",
-        "total_wei_lost",
-        "contract_balance",
-    ];
+    // let keys = [
+    //     "min_bet",
+    //     "max_profit",
+    //     "total_wei_won",
+    //     "total_wei_lost",
+    //     "contract_balance",
+    // ];
 
     let mut state_changes = Vec::new();
-    let mut ordinal = 1;
-    let mut keys_in_vec = Vec::new();
+    // let mut ordinal = 1;
+    // let mut keys_in_vec = Vec::new();
 
-
-    for key in keys {
-        if keys_in_vec.contains(&key.to_string()) {
-            // Key is already in the array, increment ordinal
-            ordinal += 1;
-        }
-        if let Some(value) = store.get_at(ordinal, key) {
-            state_changes.push(value);
-        }
-        keys_in_vec.push(key.to_string());
+    
+    if let Some(value) = store.get_at(1, "total_wei_lost") {
+        state_changes.push(value);
     }
+
+    if let Some(value) = store.get_at(2, "total_wei_lost") {
+        state_changes.push(value);
+    }
+
+    if let Some(value) = store.get_at(3, "total_wei_lost") {
+        state_changes.push(value);
+    }
+
+
+
+    // for key in keys {
+    //     if keys_in_vec.contains(&key.to_string()) {
+    //         // Key is already in the array, increment ordinal
+    //         ordinal += 1;
+    //     }
+    //     if let Some(value) = store.get_at(ordinal, key) {
+    //         state_changes.push(value);
+    //     }
+    //     keys_in_vec.push(key.to_string());
+    // }
 
     Ok(StateChanges { state_changes })
 }
