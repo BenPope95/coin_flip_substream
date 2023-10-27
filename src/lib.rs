@@ -56,8 +56,17 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
 
 #[substreams::handlers::store]
 fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>) {
+    let  mut ordinal = 1;
+    let mut keys_in_vec = Vec::new();
     for item in statechanges.state_changes {
-        s.set(0, &item.state_variable, &item);
+        let current_key = &item.state_variable;
+
+        if keys_in_vec.contains(current_key) {
+            // Key is already in the array, increment ordinal
+            ordinal += 1;
+        }
+        s.set(ordinal, current_key, &item);
+        keys_in_vec.push(current_key.clone());
     }
 }
 
@@ -74,11 +83,19 @@ fn map_stores(
     ];
 
     let mut state_changes = Vec::new();
+    let mut ordinal = 1;
+    let mut keys_in_vec = Vec::new();
+
 
     for key in keys {
-        if let Some(value) = store.get_at(0, key) {
+        if keys_in_vec.contains(&key.to_string()) {
+            // Key is already in the array, increment ordinal
+            ordinal += 1;
+        }
+        if let Some(value) = store.get_at(ordinal, key) {
             state_changes.push(value);
         }
+        keys_in_vec.push(key.to_string());
     }
 
     Ok(StateChanges { state_changes })
@@ -103,14 +120,11 @@ fn db_out(
     }
 
     for delta in store_deltas.deltas {
-        let holder = key::segment_at(&delta.key, 1);
-        let contract = key::segment_at(&delta.key, 2);
-
         tables
             .create_row("variable_name", delta.key)
-            .set("contract", contract)
-            .set("holder", holder)
-            .set("balance", delta.new_value)
+            .set("variable_name", delta.new_value.state_variable)
+            .set("old_value", delta.new_value.old_value)
+            .set("new_value", delta.new_value.new_value)
             .set("block_number", clock.number);
     }
 
