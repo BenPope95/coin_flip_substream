@@ -8,12 +8,15 @@ use pb::schema::{Approval, Approvals, StateChange, StateChanges, Transfer, Trans
 use substreams::log::println;
 use substreams::pb::substreams::Clock;
 use substreams::scalar::{BigDecimal, BigInt};
-use substreams::store::{StoreGet, StoreGetProto, StoreNew, StoreSet, StoreSetProto, DeltaProto, Deltas};
+use substreams::store::{
+    DeltaProto, Deltas, StoreGet, StoreGetProto, StoreNew, StoreSet, StoreSetProto,
+};
 //use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
-use substreams_ethereum::pb::eth::v2::{Call, StorageChange};
-use substreams_ethereum::{pb::eth, Event};
+use std::collections::HashMap;
 use substreams_database_change::pb::database::DatabaseChanges;
 use substreams_database_change::tables::Tables;
+use substreams_ethereum::pb::eth::v2::{Call, StorageChange};
+use substreams_ethereum::{pb::eth, Event};
 
 use helpers::*;
 
@@ -56,25 +59,17 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
 
 #[substreams::handlers::store]
 fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>) {
-    let  mut ordinal = 1;
-    let mut keys_in_vec = Vec::new();
+    let mut key_counters = HashMap::new();
+
     for item in statechanges.state_changes {
         let current_key = &item.state_variable;
-        let mut key_already_exists = false;
 
-        for existing_key in &keys_in_vec {
-            if current_key == existing_key {
-                key_already_exists = true;
-                break;
-            }
-        }
+        let counter = key_counters.entry(current_key.clone()).or_insert(0);
+        *counter += 1;
 
-        if key_already_exists {
-            // Key is already in the array, increment ordinal
-            ordinal += 1;
-        }
+        let ordinal = *counter;
+
         s.set(ordinal, current_key, &item);
-        keys_in_vec.push(current_key.clone());
     }
 }
 
@@ -94,7 +89,6 @@ fn map_stores(
     // let mut ordinal = 1;
     // let mut keys_in_vec = Vec::new();
 
-    
     if let Some(value) = store.get_at(1, "total_wei_lost") {
         state_changes.push(value);
     }
@@ -106,8 +100,6 @@ fn map_stores(
     if let Some(value) = store.get_at(3, "total_wei_lost") {
         state_changes.push(value);
     }
-
-
 
     // for key in keys {
     //     if keys_in_vec.contains(&key.to_string()) {
@@ -131,14 +123,10 @@ fn db_out(
     let mut tables = Tables::new();
     for state_change in state_changes.state_changes {
         tables
-            .create_row(
-                "state_change",
-              &state_change.state_variable,
-            )
+            .create_row("state_change", &state_change.state_variable)
             .set("state_variable", state_change.state_variable)
             .set("old_value", state_change.old_value)
             .set("new_value", state_change.new_value);
-            
     }
 
     for delta in store_deltas.deltas {
