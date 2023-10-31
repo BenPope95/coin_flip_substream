@@ -11,7 +11,7 @@ use substreams::scalar::{BigDecimal, BigInt};
 use substreams::store::{
     DeltaProto, Deltas, StoreGet, StoreGetProto, StoreNew, StoreSet, StoreSetProto,
 };
-//use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+
 use std::collections::HashMap;
 use substreams_database_change::pb::database::DatabaseChanges;
 use substreams_database_change::tables::Tables;
@@ -21,7 +21,6 @@ use substreams_ethereum::{pb::eth, Event};
 use helpers::*;
 
 pub const ADDRESS: &str = "0xb4aFb4a1dF99C2333DDC57Ec33E57D26E87E78E4";
-const START_BLOCK: u64 = 9844317;
 
 #[substreams::handlers::map]
 fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::errors::Error> {
@@ -77,17 +76,7 @@ fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>
 fn map_stores(
     store: StoreGetProto<StateChange>,
 ) -> Result<StateChanges, substreams::errors::Error> {
-    // let keys = [
-    //     "min_bet",
-    //     "max_profit",
-    //     "total_wei_won",
-    //     "total_wei_lost",
-    //     "contract_balance",
-    // ];
-
     let mut state_changes = Vec::new();
-    // let mut ordinal = 1;
-    // let mut keys_in_vec = Vec::new();
 
     if let Some(value) = store.get_at(1, "total_wei_lost") {
         state_changes.push(value);
@@ -101,125 +90,43 @@ fn map_stores(
         state_changes.push(value);
     }
 
-    // for key in keys {
-    //     if keys_in_vec.contains(&key.to_string()) {
-    //         // Key is already in the array, increment ordinal
-    //         ordinal += 1;
-    //     }
-    //     if let Some(value) = store.get_at(ordinal, key) {
-    //         state_changes.push(value);
-    //     }
-    //     keys_in_vec.push(key.to_string());
-    // }
-
     Ok(StateChanges { state_changes })
 }
-
+#[substreams::handlers::map]
 fn db_out(
-    clock: substreams::pb::substreams::Clock,
+    clock: Clock,
     state_changes: StateChanges,
     store_deltas: Deltas<DeltaProto<StateChange>>,
 ) -> Result<DatabaseChanges, substreams::errors::Error> {
     let mut tables = Tables::new();
+    let mut id_1 = 1;
+    let mut id_2 = 1;
+
     for state_change in state_changes.state_changes {
         tables
-            .create_row("state_change", &state_change.state_variable)
-            .set("state_variable", state_change.state_variable)
+            .create_row(
+                "state_changes",
+                format!("{}-{}-{}", state_change.state_variable, id_1, clock.number),
+            )
+            .set("variable_name", state_change.state_variable)
             .set("old_value", state_change.old_value)
-            .set("new_value", state_change.new_value);
+            .set("new_value", state_change.new_value)
+            .set("block_number", clock.number);
+        id_1 += 1;
     }
 
     for delta in store_deltas.deltas {
         tables
-            .create_row("variable_name", delta.key)
+            .create_row(
+                "variable_tracking",
+                format!("{}-{}-{}-{}", delta.key, delta.ordinal, id_2, clock.number),
+            )
             .set("variable_name", delta.new_value.state_variable)
             .set("old_value", delta.new_value.old_value)
             .set("new_value", delta.new_value.new_value)
             .set("block_number", clock.number);
+        id_2 += 1;
     }
 
     Ok(tables.to_database_changes())
 }
-
-// .map(|state_change_data| {
-//     match state_change_data {
-
-//     }
-//     StateChange {
-//     from: format_hex(&transfer.from),
-//     to: format_hex(&transfer.to),
-//     token_id: transfer.token_id.to_string(),
-//     tx_hash: hash,
-// }})
-// .collect::<Vec<Transfer>>();
-
-// fn map_transfers(block: eth::v2::Block) -> Result<Transfers, substreams::errors::Error> {
-//     let transfers = block
-//         .logs()
-//         .filter_map(|log| {
-//             if format_hex(log.address()) == ADDRESS.to_lowercase() {
-//                 if let Some(transfer) = TransferEvent::match_and_decode(log) {
-//                     Some((transfer, format_hex(&log.receipt.transaction.hash)))
-//                 } else {
-//                     None
-//                 }
-//             } else {
-//                 None
-//             }
-//         })
-//         .map(|(transfer, hash)| Transfer {
-//             from: format_hex(&transfer.from),
-//             to: format_hex(&transfer.to),
-//             token_id: transfer.token_id.to_string(),
-//             tx_hash: hash,
-//         })
-//         .collect::<Vec<Transfer>>();
-
-//     Ok(Transfers { transfers })
-// }
-
-// #[substreams::handlers::map]
-// fn map_approvals(block: eth::v2::Block) -> Result<Approvals, substreams::errors::Error> {
-//     let approvals = block
-//         .logs()
-//         .filter_map(|log| {
-//             if format_hex(log.address()) == ADDRESS.to_lowercase() {
-//                 if let Some(approval) = ApprovalEvent::match_and_decode(log) {
-//                     Some((approval, format_hex(&log.receipt.transaction.hash)))
-//                 } else {
-//                     None
-//                 }
-//             } else {
-//                 None
-//             }
-//         })
-//         .map(|(approval, hash)| Approval {
-//             owner: format_hex(&approval.owner),
-//             approved: format_hex(&approval.approved),
-//             token_id: approval.token_id.to_string(),
-//             tx_hash: hash,
-//         })
-//         .collect::<Vec<Approval>>();
-
-//     Ok(Approvals { approvals })
-// }
-
-// #[substreams::handlers::map]
-// pub fn graph_out(
-//     clock: Clock,
-//     transfers: Transfers,
-//     approvals: Approvals,
-// ) -> Result<EntityChanges, substreams::errors::Error> {
-//     let mut tables = Tables::new();
-
-//     if clock.number == START_BLOCK {
-//         // Create the collection, we only need to do this once
-//         tables.create_row("Collection", ADDRESS.to_string());
-//     }
-
-//     transfers_to_table_changes(&mut tables, &transfers);
-
-//     approvals_to_table_changes(&mut tables, &approvals);
-
-//     Ok(tables.to_entity_changes())
-// }

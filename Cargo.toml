@@ -1,5 +1,5 @@
 [package]
-name = "erc721-substream"
+name = "coin_flip_substream"
 version = "1.0.0"
 edition = "2021"
 
@@ -26,3 +26,7 @@ substreams-ethereum = "0.9"
 lto = true
 opt-level = 's'
 strip = "debuginfo"
+
+[package.metadata]
+[package.metadata.assets]
+files = ["schema.sql"]

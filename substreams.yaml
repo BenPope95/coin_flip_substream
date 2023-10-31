@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: "erc721_substream"
+  name: "coin_flip_substream"
   version: v1.0.1
 
 imports:
@@ -22,7 +22,7 @@ binaries:
 modules:
   - name: map_state_changes
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202957
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
@@ -30,7 +30,7 @@ modules:
 
   - name: store_state_changes
     kind: store
-    initialBlock: 5382741
+    initialBlock: 5202957
     updatePolicy: set
     valueType: proto:schema.StateChange
     inputs:
@@ -38,7 +38,7 @@ modules:
 
   - name: map_stores
     kind: map
-    initialBlock: 5382740
+    initialBlock: 5202957
     inputs:
       - store: store_state_changes
     output:
@@ -46,7 +46,7 @@ modules:
 
   - name: db_out
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202957
     inputs:
       - source: sf.substreams.v1.Clock
       - map: map_state_changes
