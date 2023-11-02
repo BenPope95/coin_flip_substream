@@ -1,4 +1,4 @@
-#Coin Flip Substream. Tracking variables by storage changes.
+# Coin Flip Substream. Tracking variables by storage changes.
 
 A substream tracking state changes throughout a coin flip gambling smart contract. This substream will track the contract balance, minimum bet, maximum allowable profit, total wei won, and total wei lost throughout the contracts lifetime.
 
