@@ -17,14 +17,14 @@ To track state variables of a smart contract by listening to the storage changes
 
 ## map_state_changes
 
-```
+``` rust
 fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::errors::Error>
 ```
 
 I used the map_state_changes module grab all the storage changes for the contract. It takes in an ethereum block and returns a result type with the happy path being my StateChanges struct which contains a vector of individual StateChange structs.
 	
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
-```
+``` rust
 let mut state_changes = Vec::new()
 
 for tx in block.calls() {
@@ -35,7 +35,7 @@ for tx in block.calls() {
 
 Next, Inside the if block I looped through each individual storage change for the call and matched the storage slot to the corresponding variable name and then Instantiated my StateChange struct with the variable name, old value, and new value from the storage change, and pushed the StateChange to the state_changes vector. 
 
-```
+``` rust
 for item in &tx.call.storage_changes {
 	let state_variable = match BigInt::from_unsigned_bytes_be(&item.key)
 	.to_string()
@@ -62,7 +62,7 @@ state_changes.push(StateChange {
 
 Finally I instantiate and return my StateChanges struct which contains my vector of state_changes.
 
-```
+``` rust
 		}
 	}
 	Ok(StateChanges { state_changes })
@@ -71,7 +71,7 @@ Finally I instantiate and return my StateChanges struct which contains my vector
 
 ## store_state_changes
 
-```
+``` rust
 fn store_state_changes(statechanges: StateChanges, s: StoreSetProto<StateChange>) {
 ```
 
@@ -79,7 +79,7 @@ I used my store_state_changes module to store what the current variable value is
 
 First I defined a mutable HashMap named key_counters to keep track of how many times a variable is changed during a block.
 
-```
+``` rust
 let mut key_counters = HashMap::new();
 ```
 
@@ -95,7 +95,7 @@ Finally I use the set method from StoreSetProto to set my store with the ordinal
 
 ## db_out
 
-```
+``` rust
 fn db_out(
 clock: Clock,
 state_changes: StateChanges,
@@ -107,7 +107,7 @@ The final module that is used is the db_out module. This module was used to outp
 
 The first thing I did is define my local variables. I defined a mutable variable name tables and set it to a new Instance of the Tables struct, and then id_1 and id_2 where I set both to 1. The purpose of the Id variables is to help give each primary key a unique value in the table. 
 
-```
+``` rust
 let mut tables = Tables::new();
 let mut id_1 = 1;
 let mut id_2 = 1;
@@ -115,7 +115,7 @@ let mut id_2 = 1;
 
 Next I created my rows for my state_changes table that will contain the data from my map_state_changes module. I set the primary key to be a formatted string containing the variable name, id_1 number, and the current block ensuring it will be unique for every entry. I then set my variable_name, old_value, and new_value fields for the row with the corresponding data from the StateChange struct and the block_number from the clock.  Once a row is set the id_1 is incremented before the next row is set.
 
-```
+``` rust
 for state_change in state_changes.state_changes {
 
 tables
@@ -142,7 +142,7 @@ id_1 += 1;
 ```
 I then created my rows for my variable_tracking table that will contain the data from my store module. This time i set the primary key to be a formatted string with the variable name, ordinal, id_2, and block number. Like the previous table I set the rest of the values in the row to the corresponding data in the store module and the block number and then increment the id_2 variable before the next row is set. 
 
-```
+``` rust
 for delta in store_deltas.deltas {
 
 tables
@@ -169,7 +169,7 @@ id_2 += 1;
 ```
 Finally I returned my tables as DatabaseChanges.
 
-```
+``` rust
 Ok(tables.to_database_changes())
 
 }
