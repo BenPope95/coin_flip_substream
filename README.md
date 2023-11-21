@@ -23,14 +23,16 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
 
 I used the map_state_changes module grab all the storage changes for the contract. It takes in an ethereum block and returns a result type with the happy path being my StateChanges struct which contains a vector of individual StateChange structs.
 
-#### Storage layout of smart contracts
+### Storage layout of smart contracts
 Before getting into the details of this module I want to quickly explain how smart contract storage slots work. Each storage slot in a smart contract takes up 32 bytes. In simple terms, most variables, like a number or a small piece of data, fit into one of these 32-byte slots. However, larger or more complex variables, such as strings or arrays, may span across multiple slots due to their size. 
 
 The order of these slots is determined by the sequence in which variables are declared in the contract. It starts with the first variable you declare. If a contract inherits from other contracts, it gets a bit more interesting. The inherited state variables are allocated to slots before the variables declared in the child contract. This means if Contract B inherits from Contract A, Contract A's variables are slotted first, followed by Contract B's own variables.
 
 You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so. Otherwise they will take up an entire storage slot even if the data is smaller than 32 bytes. This is a smart way to optimize storage and cut costs. It's especially handy when you have several small variables because you can make the most of the 32 bytes in each slot without wasting space.
 
-#### Back to the Module 
+To find the storage layout of a smart contract you can use several automated tools available, but for the sake of this project I am going to explain how to do so manually.
+
+### Back to the Module 
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
 ``` rust
 let mut state_changes = Vec::new()
