@@ -24,7 +24,7 @@ fn map_state_changes(block: eth::v2::Block) -> Result<StateChanges, substreams::
 I used the map_state_changes module grab all the storage changes for the contract. It takes in an ethereum block and returns a result type with the happy path being my StateChanges struct which contains a vector of individual StateChange structs.
 
 ### Storage layout of smart contracts
-Before getting into the details of this module I want to quickly explain how smart contract storage slots work. Each storage slot in a smart contract takes up 32 bytes. In simple terms, most variables, like a number or a small piece of data, fit into one of these 32-byte slots. However, larger or more complex variables, such as strings or arrays, may span across multiple slots due to their size. 
+Before getting into the details of this module I want to quickly explain how smart contract storage slots work. Each storage slot in a smart contract takes up 32 bytes. Most variables, like a number or a small piece of data, fit into one of these 32-byte slots. However, larger or more complex variables, such as strings or arrays, may span across multiple slots due to their size. 
 
 The order of these slots is determined by the sequence in which variables are declared in the contract. The first storage slot is slot 0 and it starts with the first variable you declare. The next slot is slot 1 then 2 and so on. If a contract inherits from other contracts, it gets a bit more interesting. The inherited state variables are allocated to slots before the variables declared in the child contract. This means if Contract B inherits from Contract A, Contract A's variables are slotted first, followed by Contract B's own variables.
 
