@@ -28,7 +28,7 @@ Before getting into the details of this module I want to quickly explain how sma
 
 The order of these slots is determined by the sequence in which variables are declared in the contract. It starts with the first variable you declare. If a contract inherits from other contracts, it gets a bit more interesting. The inherited state variables are allocated to slots before the variables declared in the child contract. This means if Contract B inherits from Contract A, Contract A's variables are slotted first, followed by Contract B's own variables.
 
-You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so. Otherwise they will take up an entire storage slot even if the data is smaller than 32 bytes. 
+You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so, otherwise they will take up an entire storage slot even when the data is smaller than 32 bytes. 
 
 ### Back to the Module 
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
