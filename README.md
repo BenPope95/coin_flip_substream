@@ -30,8 +30,6 @@ The order of these slots is determined by the sequence in which variables are de
 
 You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so. Otherwise they will take up an entire storage slot even if the data is smaller than 32 bytes. This is a smart way to optimize storage and cut costs. It's especially handy when you have several small variables because you can make the most of the 32 bytes in each slot without wasting space.
 
-To find the storage layout of a smart contract you can use several automated tools available, but for the sake of this project I am going to explain how to do so manually.
-
 ### Back to the Module 
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
 ``` rust
