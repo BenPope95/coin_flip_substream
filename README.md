@@ -26,9 +26,11 @@ I used the map_state_changes module grab all the storage changes for the contrac
 ### Storage layout of smart contracts
 Before getting into the details of this module I want to quickly explain how smart contract storage slots work. Each storage slot in a smart contract takes up 32 bytes. In simple terms, most variables, like a number or a small piece of data, fit into one of these 32-byte slots. However, larger or more complex variables, such as strings or arrays, may span across multiple slots due to their size. 
 
-The order of these slots is determined by the sequence in which variables are declared in the contract. It starts with the first variable you declare. If a contract inherits from other contracts, it gets a bit more interesting. The inherited state variables are allocated to slots before the variables declared in the child contract. This means if Contract B inherits from Contract A, Contract A's variables are slotted first, followed by Contract B's own variables.
+The order of these slots is determined by the sequence in which variables are declared in the contract. The first storage slot is slot 0 and it starts with the first variable you declare. The next slot is slot 1 then 2 and so on. If a contract inherits from other contracts, it gets a bit more interesting. The inherited state variables are allocated to slots before the variables declared in the child contract. This means if Contract B inherits from Contract A, Contract A's variables are slotted first, followed by Contract B's own variables.
 
 You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so, otherwise they will take up an entire storage slot even when the data is smaller than 32 bytes. 
+
+To find the storage layout of a smart contract manually you need to start at the top of the first contract in the inheritence tree and work your way down from state variable to state variable paying attention to the type of the variable and how many bytes it occupies. There are also automated tools available that help find the storage layout of a contract which make things easier, especially when you have many inhertences involved.
 
 ### Back to the Module 
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
