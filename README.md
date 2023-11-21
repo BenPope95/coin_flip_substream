@@ -30,7 +30,7 @@ The order of these slots is determined by the sequence in which variables are de
 
 You can also pack multiple smaller variables into one slot to save storage space. However these variables need to be declared next to each other in the contract in order to do so, otherwise they will take up an entire storage slot even when the data is smaller than 32 bytes. 
 
-To find the storage layout of a smart contract manually you need to start at the top of the first contract in the inheritence tree and work your way down from state variable to state variable paying attention to the type of the variable and how many bytes it occupies. There are also automated tools available that help find the storage layout of a contract which make things easier, especially when you have many inhertences involved.
+To find the storage layout of a smart contract manually you need to start at the top of the first contract in the inheritence tree and work your way down from state variable to state variable paying attention to the type of the variable and how many bytes it occupies. There are also automated tools available that help find the storage layout of a contract which make things easier, especially when you have many inhertences involved. For this project I used cast storage. https://book.getfoundry.sh/reference/cast/cast-storage
 
 ### Back to the Module 
  First I defined an empty mutable vector name state_changes and then filtered through the calls and grab all of the calls that were to the contract address and that included storage changes.
