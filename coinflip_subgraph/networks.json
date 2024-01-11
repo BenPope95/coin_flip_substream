@@ -1,0 +1,8 @@
+{
+  "mainnet": {
+    "CoinFlip": {
+      "address": "0xb4aFb4a1dF99C2333DDC57Ec33E57D26E87E78E4",
+      "startBlock": 5202951
+    }
+  }
+}
