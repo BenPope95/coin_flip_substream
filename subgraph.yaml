@@ -5,12 +5,12 @@ schema:
   file: schema.graphql
 dataSources:
   - kind: substreams
-    name: substream_test
+    name: CoinFlip
     network: mainnet
     source:
       package:
         moduleName: graph_out
-        file: substream.spkg
+        file: coin-flip-substream-v1.0.1.spkg
     mapping:
       kind: substreams/graph-entities
       apiVersion: 0.0.5

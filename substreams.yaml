@@ -22,7 +22,7 @@ binaries:
 modules:
   - name: map_state_changes
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202951
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
@@ -30,7 +30,7 @@ modules:
 
   - name: store_state_changes
     kind: store
-    initialBlock: 5382741
+    initialBlock: 5202951
     updatePolicy: set
     valueType: proto:schema.StateChange
     inputs:
@@ -38,7 +38,7 @@ modules:
 
   - name: map_stores
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202951
     inputs:
       - store: store_state_changes
     output:
@@ -46,7 +46,7 @@ modules:
 
   - name: db_out
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202951
     inputs:
       - source: sf.substreams.v1.Clock
       - map: map_state_changes
@@ -68,11 +68,9 @@ modules:
 
   - name: graph_out
     kind: map
-    initialBlock: 5382741
+    initialBlock: 5202951
     inputs:
       - source: sf.substreams.v1.Clock
       - map: map_state_changes
-      - store: store_state_changes
-        mode: deltas
     output:
       type: proto:substreams.entity.v1.EntityChanges
