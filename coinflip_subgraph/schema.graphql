@@ -1,7 +1,0 @@
-type newBet @entity(immutable: true) {
-  id: Bytes!
-  _str: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
