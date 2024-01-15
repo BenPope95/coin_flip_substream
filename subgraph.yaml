@@ -5,7 +5,7 @@ schema:
   file: schema.graphql
 dataSources:
   - kind: substreams
-    name: CoinFlip
+    name: benpope95/coinflip-subgraph
     network: mainnet
     source:
       package:
