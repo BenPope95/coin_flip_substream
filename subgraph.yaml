@@ -1,6 +1,6 @@
 specVersion: 0.0.4
-description: A generic ERC721 subgraph built by @blind_nabler from the GraphBuildersDAO
-repository: https://github.com/MercuricChloride/erc721-subgraph
+description: subgraph tracking changes in state variables for a coinflip game
+repository: https://github.com/BenPope95/coin_flip_substream/tree/subgraph
 schema:
   file: schema.graphql
 dataSources:
